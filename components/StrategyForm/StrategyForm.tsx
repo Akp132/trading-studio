@@ -1,24 +1,46 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ScannerStep from "./ScannerStep";
 import RuleBuilder from "./RuleBuilder";
+import { v4 as uuidv4 } from "uuid";
 
 export default function StrategyForm() {
   const [step, setStep] = useState<number>(1);
 
-  // New: Strategy Name
+  const [strategyId, setStrategyId] = useState<string | null>(null);
   const [strategyName, setStrategyName] = useState<string>("");
-
   const [exchange, setExchange] = useState<string>("");
   const [instrumentType, setInstrumentType] = useState<string>("");
   const [scannerRules, setScannerRules] = useState<any>(null);
   const [buyRules, setBuyRules] = useState<any>(null);
   const [sellRules, setSellRules] = useState<any>(null);
 
+  // Load/Edit functionality on component mount
+  useEffect(() => {
+    const selectedId = localStorage.getItem("selectedStrategyId");
+    if (!selectedId) return;
+
+    const stored = JSON.parse(localStorage.getItem("strategies") || "[]");
+    const selectedStrategy = stored.find((s: any) => s.id === selectedId);
+
+    if (selectedStrategy) {
+      setStrategyId(selectedStrategy.id);
+      setStrategyName(selectedStrategy.name);
+      setExchange(selectedStrategy.exchange);
+      setInstrumentType(selectedStrategy.instrumentType);
+      setScannerRules(selectedStrategy.scannerRules);
+      setBuyRules(selectedStrategy.buyRules);
+      setSellRules(selectedStrategy.sellRules);
+    }
+
+    // Clear the selected ID after loading
+    localStorage.removeItem("selectedStrategyId");
+  }, []);
+
   const nextStep = () => setStep((prev) => Math.min(prev + 1, 4));
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
   const strategyData = {
-    id: Date.now().toString(),
+    id: strategyId || uuidv4(),
     name: strategyName || "Untitled Strategy",
     exchange,
     instrumentType,
@@ -29,7 +51,11 @@ export default function StrategyForm() {
 
   const saveToLocalStorage = () => {
     const existing = JSON.parse(localStorage.getItem("strategies") || "[]");
-    localStorage.setItem("strategies", JSON.stringify([...existing, strategyData]));
+    const updatedStrategies = strategyId
+      ? existing.map((s: any) => (s.id === strategyId ? strategyData : s))
+      : [...existing, strategyData];
+
+    localStorage.setItem("strategies", JSON.stringify(updatedStrategies));
     alert("Strategy saved successfully!");
   };
 
@@ -62,7 +88,7 @@ export default function StrategyForm() {
       {/* Step Content */}
       {step === 1 && (
         <>
-          {/* New: Strategy Name Input */}
+          {/* Strategy Name */}
           <div className="mb-6">
             <label className="block text-gray-700 font-medium mb-2">Strategy Name</label>
             <input
