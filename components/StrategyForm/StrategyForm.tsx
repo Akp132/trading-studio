@@ -5,7 +5,9 @@ import RuleBuilder from "./RuleBuilder";
 export default function StrategyForm() {
   const [step, setStep] = useState<number>(1);
 
-  // State for each step
+  // New: Strategy Name
+  const [strategyName, setStrategyName] = useState<string>("");
+
   const [exchange, setExchange] = useState<string>("");
   const [instrumentType, setInstrumentType] = useState<string>("");
   const [scannerRules, setScannerRules] = useState<any>(null);
@@ -15,18 +17,27 @@ export default function StrategyForm() {
   const nextStep = () => setStep((prev) => Math.min(prev + 1, 4));
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
+  const strategyData = {
+    id: Date.now().toString(),
+    name: strategyName || "Untitled Strategy",
+    exchange,
+    instrumentType,
+    scannerRules,
+    buyRules,
+    sellRules,
+  };
+
+  const saveToLocalStorage = () => {
+    const existing = JSON.parse(localStorage.getItem("strategies") || "[]");
+    localStorage.setItem("strategies", JSON.stringify([...existing, strategyData]));
+    alert("Strategy saved successfully!");
+  };
+
   const handleExport = () => {
-    const exportData = {
-      exchange,
-      instrumentType,
-      scannerRules,
-      buyRules,
-      sellRules,
-    };
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(strategyData, null, 2));
     const downloadAnchor = document.createElement("a");
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", "strategy.json");
+    downloadAnchor.setAttribute("download", `${strategyData.name}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     document.body.removeChild(downloadAnchor);
@@ -50,13 +61,27 @@ export default function StrategyForm() {
 
       {/* Step Content */}
       {step === 1 && (
-        <ScannerStep
-          exchange={exchange}
-          setExchange={setExchange}
-          instrumentType={instrumentType}
-          setInstrumentType={setInstrumentType}
-          onTreeChange={setScannerRules}
-        />
+        <>
+          {/* New: Strategy Name Input */}
+          <div className="mb-6">
+            <label className="block text-gray-700 font-medium mb-2">Strategy Name</label>
+            <input
+              type="text"
+              value={strategyName}
+              onChange={(e) => setStrategyName(e.target.value)}
+              placeholder="Enter strategy name..."
+              className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <ScannerStep
+            exchange={exchange}
+            setExchange={setExchange}
+            instrumentType={instrumentType}
+            setInstrumentType={setInstrumentType}
+            onTreeChange={setScannerRules}
+          />
+        </>
       )}
 
       {step === 2 && (
@@ -77,24 +102,23 @@ export default function StrategyForm() {
         <div>
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Strategy Review 📋</h3>
           <pre className="bg-gray-100 p-4 rounded overflow-x-auto max-h-96 text-sm">
-            {JSON.stringify(
-              {
-                exchange,
-                instrumentType,
-                scannerRules,
-                buyRules,
-                sellRules,
-              },
-              null,
-              2
-            )}
+            {JSON.stringify(strategyData, null, 2)}
           </pre>
-          <button
-            onClick={handleExport}
-            className="mt-6 px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md"
-          >
-            📥 Download Strategy JSON
-          </button>
+
+          <div className="flex gap-4 mt-6">
+            <button
+              onClick={handleExport}
+              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+            >
+              📥 Download JSON
+            </button>
+            <button
+              onClick={saveToLocalStorage}
+              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md"
+            >
+              💾 Save Strategy
+            </button>
+          </div>
         </div>
       )}
 
