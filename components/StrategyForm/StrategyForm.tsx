@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import ScannerStep from "./ScannerStep";
 import RuleBuilder from "./RuleBuilder";
 import { v4 as uuidv4 } from "uuid";
 
 export default function StrategyForm() {
   const [step, setStep] = useState<number>(1);
+  const router = useRouter();
 
   const [strategyId, setStrategyId] = useState<string | null>(null);
   const [strategyName, setStrategyName] = useState<string>("");
@@ -14,7 +16,6 @@ export default function StrategyForm() {
   const [buyRules, setBuyRules] = useState<any>(null);
   const [sellRules, setSellRules] = useState<any>(null);
 
-  // Load/Edit functionality on component mount
   useEffect(() => {
     const selectedId = localStorage.getItem("selectedStrategyId");
     if (!selectedId) return;
@@ -32,7 +33,6 @@ export default function StrategyForm() {
       setSellRules(selectedStrategy.sellRules);
     }
 
-    // Clear the selected ID after loading
     localStorage.removeItem("selectedStrategyId");
   }, []);
 
@@ -49,6 +49,20 @@ export default function StrategyForm() {
     sellRules,
   };
 
+  const isStepValid = () => {
+    if (step === 1) {
+      return (
+        strategyName.trim() !== "" &&
+        exchange.trim() !== "" &&
+        instrumentType.trim() !== "" &&
+        scannerRules &&
+        scannerRules.children &&
+        scannerRules.children.length > 0
+      );
+    }
+    return true;
+  };
+
   const saveToLocalStorage = () => {
     const existing = JSON.parse(localStorage.getItem("strategies") || "[]");
     const updatedStrategies = strategyId
@@ -57,6 +71,7 @@ export default function StrategyForm() {
 
     localStorage.setItem("strategies", JSON.stringify(updatedStrategies));
     alert("Strategy saved successfully!");
+    router.push("/strategies");
   };
 
   const handleExport = () => {
@@ -73,7 +88,7 @@ export default function StrategyForm() {
     <div className="w-full max-w-3xl bg-white p-8 rounded-lg shadow-md mx-auto mt-8">
       <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Strategy Creation Wizard</h2>
 
-      {/* Stepper Indicators */}
+      {/* Stepper */}
       <div className="flex justify-between mb-8">
         {["Scanner", "Buy", "Sell", "Review"].map((label, index) => (
           <div
@@ -85,10 +100,9 @@ export default function StrategyForm() {
         ))}
       </div>
 
-      {/* Step Content */}
+      {/* Step 1: Scanner */}
       {step === 1 && (
         <>
-          {/* Strategy Name */}
           <div className="mb-6">
             <label className="block text-gray-700 font-medium mb-2">Strategy Name</label>
             <input
@@ -107,9 +121,16 @@ export default function StrategyForm() {
             setInstrumentType={setInstrumentType}
             onTreeChange={setScannerRules}
           />
+
+          {!isStepValid() && (
+            <p className="text-sm text-red-500 mt-4">
+              Please fill in all fields and add at least one rule to continue.
+            </p>
+          )}
         </>
       )}
 
+      {/* Step 2: Buy Rules */}
       {step === 2 && (
         <div>
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Buy Conditions 📈</h3>
@@ -117,6 +138,7 @@ export default function StrategyForm() {
         </div>
       )}
 
+      {/* Step 3: Sell Rules */}
       {step === 3 && (
         <div>
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Sell Conditions 📉</h3>
@@ -124,6 +146,7 @@ export default function StrategyForm() {
         </div>
       )}
 
+      {/* Step 4: Review */}
       {step === 4 && (
         <div>
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Strategy Review 📋</h3>
@@ -148,7 +171,7 @@ export default function StrategyForm() {
         </div>
       )}
 
-      {/* Navigation Buttons */}
+      {/* Step Controls */}
       <div className="flex justify-between mt-8">
         {step > 1 && (
           <button
@@ -161,7 +184,12 @@ export default function StrategyForm() {
         {step < 4 && (
           <button
             onClick={nextStep}
-            className="ml-auto px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+            disabled={!isStepValid()}
+            className={`ml-auto px-6 py-3 rounded-lg transition-colors shadow-md ${
+              isStepValid()
+                ? "bg-blue-500 text-white hover:bg-blue-700"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
           >
             Next ➡
           </button>
