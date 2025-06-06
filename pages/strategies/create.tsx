@@ -14,7 +14,7 @@ export default function CreateStrategyPage() {
       const all = JSON.parse(localStorage.getItem("strategies") || "[]");
       const found = all.find((s: any) => s.id === id);
       if (found) setInitialData(found);
-      localStorage.removeItem("selectedStrategyId"); // clean up
+      localStorage.removeItem("selectedStrategyId");
     }
   }, []);
 

@@ -4,19 +4,35 @@ import ScannerStep from "./ScannerStep";
 import RuleBuilder from "./RuleBuilder";
 import { v4 as uuidv4 } from "uuid";
 
-export default function StrategyForm() {
+type RuleNode = any;
+
+interface StrategyFormProps {
+  initialData?: {
+    id?: string;
+    name: string;
+    exchange: string;
+    instrumentType: string;
+    scannerRules: RuleNode;
+    buyRules: RuleNode;
+    sellRules: RuleNode;
+  };
+}
+
+export default function StrategyForm({ initialData }: StrategyFormProps) {
   const [step, setStep] = useState<number>(1);
   const router = useRouter();
 
-  const [strategyId, setStrategyId] = useState<string | null>(null);
-  const [strategyName, setStrategyName] = useState<string>("");
-  const [exchange, setExchange] = useState<string>("");
-  const [instrumentType, setInstrumentType] = useState<string>("");
-  const [scannerRules, setScannerRules] = useState<any>(null);
-  const [buyRules, setBuyRules] = useState<any>(null);
-  const [sellRules, setSellRules] = useState<any>(null);
+  const [strategyId, setStrategyId] = useState<string | null>(initialData?.id || null);
+  const [strategyName, setStrategyName] = useState<string>(initialData?.name || "");
+  const [exchange, setExchange] = useState<string>(initialData?.exchange || "");
+  const [instrumentType, setInstrumentType] = useState<string>(initialData?.instrumentType || "");
+  const [scannerRules, setScannerRules] = useState<any>(initialData?.scannerRules || null);
+  const [buyRules, setBuyRules] = useState<any>(initialData?.buyRules || null);
+  const [sellRules, setSellRules] = useState<any>(initialData?.sellRules || null);
 
   useEffect(() => {
+    if (initialData) return;
+
     const selectedId = localStorage.getItem("selectedStrategyId");
     if (!selectedId) return;
 
@@ -34,7 +50,7 @@ export default function StrategyForm() {
     }
 
     localStorage.removeItem("selectedStrategyId");
-  }, []);
+  }, [initialData]);
 
   const nextStep = () => setStep((prev) => Math.min(prev + 1, 4));
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
@@ -88,7 +104,6 @@ export default function StrategyForm() {
     <div className="w-full max-w-3xl bg-white p-8 rounded-lg shadow-md mx-auto mt-8">
       <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Strategy Creation Wizard</h2>
 
-      {/* Stepper */}
       <div className="flex justify-between mb-8">
         {["Scanner", "Buy", "Sell", "Review"].map((label, index) => (
           <div
@@ -100,7 +115,6 @@ export default function StrategyForm() {
         ))}
       </div>
 
-      {/* Step 1: Scanner */}
       {step === 1 && (
         <>
           <div className="mb-6">
@@ -130,7 +144,6 @@ export default function StrategyForm() {
         </>
       )}
 
-      {/* Step 2: Buy Rules */}
       {step === 2 && (
         <div>
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Buy Conditions 📈</h3>
@@ -138,7 +151,6 @@ export default function StrategyForm() {
         </div>
       )}
 
-      {/* Step 3: Sell Rules */}
       {step === 3 && (
         <div>
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Sell Conditions 📉</h3>
@@ -146,7 +158,6 @@ export default function StrategyForm() {
         </div>
       )}
 
-      {/* Step 4: Review */}
       {step === 4 && (
         <div>
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Strategy Review 📋</h3>
@@ -171,7 +182,6 @@ export default function StrategyForm() {
         </div>
       )}
 
-      {/* Step Controls */}
       <div className="flex justify-between mt-8">
         {step > 1 && (
           <button
