@@ -30,39 +30,45 @@ interface RuleBuilderProps {
 
 function reducer(state: RuleNode, action: Action): RuleNode {
   const update = (node: RuleNode): RuleNode => {
-    if (node.id === action.id) {
-      switch (action.type) {
-        case "UPDATE_CONDITION":
+    switch (action.type) {
+      case "UPDATE_CONDITION":
+        if (node.id === action.id) {
           return { ...node, data: { ...node.data!, [action.field]: action.value } };
-        case "SET_LOGIC":
+        }
+        break;
+      case "SET_LOGIC":
+        if (node.id === action.id) {
           return { ...node, logic: action.logic };
-        case "REMOVE_NODE":
-          return node; // Handled at parent level
-      }
+        }
+        break;
+      case "REMOVE_NODE":
+        // Remove is handled by parent. Don't change current node.
+        break;
+      case "ADD_CONDITION":
+      case "ADD_GROUP":
+        if (node.children && node.id === action.parentId) {
+          const newChild: RuleNode =
+            action.type === "ADD_CONDITION"
+              ? {
+                  id: uuidv4(),
+                  type: "condition",
+                  data: { field: "", operator: "", value: "" },
+                }
+              : {
+                  id: uuidv4(),
+                  type: "group",
+                  logic: action.logic,
+                  children: [],
+                };
+          return { ...node, children: [...node.children, newChild] };
+        }
+        break;
     }
 
     if (node.children) {
-      let updatedChildren = node.children
+      const updatedChildren = node.children
         .filter((child) => !(action.type === "REMOVE_NODE" && child.id === action.id))
         .map(update);
-
-      if (action.type === "ADD_CONDITION" && node.id === action.parentId) {
-        updatedChildren.push({
-          id: uuidv4(),
-          type: "condition",
-          data: { field: "", operator: "", value: "" },
-        });
-      }
-
-      if (action.type === "ADD_GROUP" && node.id === action.parentId) {
-        updatedChildren.push({
-          id: uuidv4(),
-          type: "group",
-          logic: action.logic,
-          children: [],
-        });
-      }
-
       return { ...node, children: updatedChildren };
     }
 
@@ -80,7 +86,6 @@ export default function RuleBuilder({ onTreeChange }: RuleBuilderProps) {
     children: [],
   });
 
-  // Notify parent when rule tree changes
   useEffect(() => {
     onTreeChange(tree);
   }, [tree, onTreeChange]);
@@ -92,7 +97,9 @@ export default function RuleBuilder({ onTreeChange }: RuleBuilderProps) {
         <div key={node.id} className="flex gap-2 items-center mb-4">
           <select
             value={field}
-            onChange={(e) => dispatch({ type: "UPDATE_CONDITION", id: node.id, field: "field", value: e.target.value })}
+            onChange={(e) =>
+              dispatch({ type: "UPDATE_CONDITION", id: node.id, field: "field", value: e.target.value })
+            }
             className="p-2 border border-gray-300 rounded-lg bg-white"
           >
             <option value="">Field</option>
@@ -103,7 +110,9 @@ export default function RuleBuilder({ onTreeChange }: RuleBuilderProps) {
 
           <select
             value={operator}
-            onChange={(e) => dispatch({ type: "UPDATE_CONDITION", id: node.id, field: "operator", value: e.target.value })}
+            onChange={(e) =>
+              dispatch({ type: "UPDATE_CONDITION", id: node.id, field: "operator", value: e.target.value })
+            }
             className="p-2 border border-gray-300 rounded-lg bg-white"
           >
             <option value="">Operator</option>
@@ -115,7 +124,9 @@ export default function RuleBuilder({ onTreeChange }: RuleBuilderProps) {
           <input
             type="text"
             value={value}
-            onChange={(e) => dispatch({ type: "UPDATE_CONDITION", id: node.id, field: "value", value: e.target.value })}
+            onChange={(e) =>
+              dispatch({ type: "UPDATE_CONDITION", id: node.id, field: "value", value: e.target.value })
+            }
             placeholder="Value"
             className="p-2 border border-gray-300 rounded-lg bg-white w-24"
           />
@@ -136,7 +147,9 @@ export default function RuleBuilder({ onTreeChange }: RuleBuilderProps) {
           <div className="flex items-center gap-4 mb-4">
             <select
               value={node.logic}
-              onChange={(e) => dispatch({ type: "SET_LOGIC", id: node.id, logic: e.target.value as LogicType })}
+              onChange={(e) =>
+                dispatch({ type: "SET_LOGIC", id: node.id, logic: e.target.value as LogicType })
+              }
               className="p-2 border border-gray-300 rounded-lg bg-white"
             >
               <option value="AND">AND</option>
