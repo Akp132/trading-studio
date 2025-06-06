@@ -2,6 +2,9 @@
 
 This is a frontend application built using **Next.js**, **TypeScript**, and **Tailwind CSS** as part of a programming assignment. It allows users to **create, edit, review, and save trading strategies** using a multi-step form with a visual rule builder and persistent storage.
 
+
+LIVE AT - trading-studio-d3ff.vercel.app
+
 > 🔗 **Assignment Document:** See [`Next.js + TypeScript Assignment.pdf`](./Next.js%20+%20TypeScript%20Assignment.pdf) in the root for complete specifications.
 
 ---
