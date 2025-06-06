@@ -5,7 +5,7 @@ This is a frontend application built using **Next.js**, **TypeScript**, and **Ta
 
 LIVE AT - trading-studio-d3ff.vercel.app
 
-> 🔗 **Assignment Document:** See [`Next.js + TypeScript Assignment.pdf`](./Next.js%20+%20TypeScript%20Assignment.pdf) in the root for complete specifications.
+
 
 ---
 
