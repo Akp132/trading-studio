@@ -14,8 +14,8 @@ function Navbar() {
         <div className="flex gap-6">
           <a href="#hero" className="text-gray-700 hover:text-blue-500 font-medium transition">Home</a>
           <a href="#features" className="text-gray-700 hover:text-blue-500 font-medium transition">Features</a>
-          <Link href="/strategies" className="text-gray-700 hover:text-blue-500 font-medium transition">
-            Strategies
+          <Link href="/strategies" legacyBehavior>
+            <a className="text-gray-700 hover:text-blue-500 font-medium transition">Strategies</a>
           </Link>
         </div>
       </div>
@@ -42,7 +42,11 @@ function Footer() {
           <ul className="space-y-2">
             <li><a href="#hero" className="hover:text-blue-400 transition">Home</a></li>
             <li><a href="#features" className="hover:text-blue-400 transition">Features</a></li>
-            <li><a href="/strategies" className="hover:text-blue-400 transition">Strategies</a></li>
+            <li>
+              <Link href="/strategies" legacyBehavior>
+                <a className="hover:text-blue-400 transition">Strategies</a>
+              </Link>
+            </li>
           </ul>
         </div>
 
